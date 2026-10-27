@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Denkpause</title>
+<style>
+:root{
+  --bg:#f7f1e6; --card:#ffffff; --ink:#1f2a3a; --soft:#5b6576;
+  --accent:#2e7d5b; --accent-ink:#ffffff; --accent-soft:#dcefe5;
+  --warn:#c0492b; --gold:#d99a1e; --line:#e3d9c8;
+  --tile:#fff6e3; --tile-line:#e2c88f;
+  --fs:22px;
+}
+body.xl{--fs:27px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:var(--fs);line-height:1.35}
+body{min-height:100vh;user-select:none;-webkit-user-select:none}
+.screen{display:none;padding:20px 16px 40px;max-width:640px;margin:0 auto}
+.screen.on{display:block}
+h1{font-size:1.6em;margin:.2em 0 .1em}
+h2{font-size:1.3em;margin:.2em 0 .4em}
+p{margin:.4em 0}
+.muted{color:var(--soft)}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.top h2{flex:1;margin:0}
+.iconbtn{min-width:60px;height:60px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:1.1em;font-weight:700;padding:0 14px}
+.btn{display:block;width:100%;min-height:68px;border:none;border-radius:18px;background:var(--accent);color:var(--accent-ink);font-size:1.05em;font-weight:700;padding:14px 18px;margin:12px 0;cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn:active,.iconbtn:active,.tile:active,.ans:active{transform:scale(.97)}
+.streak{display:flex;align-items:center;gap:16px;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:16px 18px;margin:14px 0}
+.streak .num{font-size:2.2em;font-weight:800;color:var(--gold);min-width:1.6em;text-align:center}
+.task{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:18px;margin:12px 0;font-size:1em;color:var(--ink);cursor:pointer;min-height:96px}
+.task .emo{font-size:1.9em;width:1.5em;text-align:center}
+.task .t{flex:1}
+.task .t b{display:block;font-size:1.05em}
+.task .t span{color:var(--soft);font-size:.82em}
+.task .st{font-size:1.5em;width:1.3em;text-align:center}
+.task.done{background:var(--accent-soft);border-color:var(--accent)}
+.hint{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 16px;margin:10px 0;font-size:.95em}
+.slots{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px 0;min-height:70px}
+.slot{width:52px;height:62px;border-bottom:4px solid var(--soft);display:flex;align-items:center;justify-content:center;font-size:1.5em;font-weight:800}
+body.xl .slot{width:58px;height:68px}
+.tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0}
+.tile{width:64px;height:68px;border-radius:14px;border:2px solid var(--tile-line);background:var(--tile);font-size:1.45em;font-weight:800;color:var(--ink)}
+body.xl .tile{width:70px;height:74px}
+.tile.used{visibility:hidden}
+.row{display:flex;gap:12px}
+.row .btn{margin:6px 0}
+.progress{color:var(--soft);font-size:.85em;text-align:center}
+.q{font-size:2.1em;font-weight:800;text-align:center;margin:26px 0 20px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ans{min-height:84px;border-radius:18px;border:2px solid var(--line);background:var(--card);font-size:1.5em;font-weight:800;color:var(--ink)}
+.ans.ok{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ans.bad{background:var(--warn);color:#fff;border-color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.card{aspect-ratio:1/1;border-radius:16px;border:none;background:var(--accent);font-size:2.4em;display:flex;align-items:center;justify-content:center;color:transparent;cursor:pointer;transition:background .15s}
+.card.open{background:var(--card);border:2px solid var(--line);color:var(--ink)}
+.card.match{background:var(--accent-soft);border:2px solid var(--accent);color:var(--ink)}
+.feedback{text-align:center;font-size:1.15em;font-weight:700;min-height:1.6em;margin:8px 0}
+.feedback.ok{color:var(--accent)}
+.feedback.bad{color:var(--warn)}
+.big{font-size:3.6em;text-align:center;margin:20px 0 6px}
+.center{text-align:center}
+.opt{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;margin:12px 0}
+.seg{display:flex;gap:8px}
+.seg button{min-height:56px;min-width:84px;border-radius:14px;border:2px solid var(--line);background:var(--bg);font-size:.85em;font-weight:700;color:var(--ink)}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.shake{animation:sh .4s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.foot{text-align:center;color:var(--soft);font-size:.75em;margin-top:24px}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<section class="screen on" id="s-home">
+  <h1>Denkpause</h1>
+  <p class="muted" id="today"></p>
+  <div class="streak">
+    <div class="num" id="streakNum">0</div>
+    <div id="streakTxt">Tage in Folge</div>
+  </div>
+  <p><b>Ihre drei Aufgaben für heute:</b></p>
+  <button class="task" data-go="wort"><div class="emo">🔤</div><div class="t"><b>Wort-Rätsel</b><span>Buchstaben richtig ordnen</span></div><div class="st" id="st-wort">›</div></button>
+  <button class="task" data-go="rechnen"><div class="emo">➕</div><div class="t"><b>Kopfrechnen</b><span>6 kleine Rechenaufgaben</span></div><div class="st" id="st-rechnen">›</div></button>
+  <button class="task" data-go="memo"><div class="emo">🃏</div><div class="t"><b>Gedächtnis</b><span>Paare finden</span></div><div class="st" id="st-memo">›</div></button>
+  <div id="extra"></div>
+  <button class="btn ghost" data-go="settings">⚙️ Einstellungen</button>
+  <p class="foot">Kostenlos · ohne Werbung · ohne Anmeldung</p>
+</section>
+
+<!-- WORT -->
+<section class="screen" id="s-wort">
+  <div class="top"><button class="iconbtn" data-back>‹ Zurück</button><h2>Wort-Rätsel</h2></div>
+  <p class="progress" id="w-prog"></p>
+  <div class="hint">Hinweis: <b id="w-hint"></b></div>
+  <div class="slots" id="w-slots"></div>
+  <div class="feedback" id="w-fb"></div>
+  <div class="tiles" id="w-tiles"></div>
+  <div class="row">
+    <button class="btn ghost" id="w-del">⌫ Löschen</button>
+    <button class="btn ghost" id="w-tip">💡 Tipp</button>
+  </div>
+</section>
+
+<!-- RECHNEN -->
+<section class="screen" id="s-rechnen">
+  <div class="top"><button class="iconbtn" data-back>‹ Zurück</button><h2>Kopfrechnen</h2></div>
+  <p class="progress" id="r-prog"></p>
+  <div class="q" id="r-q"></div>
+  <div class="answers" id="r-ans"></div>
+  <div class="feedback" id="r-fb"></div>
+</section>
+
+<!-- MEMO -->
+<section class="screen" id="s-memo">
+  <div class="top"><button class="iconbtn" data-back>‹ Zurück</button><h2>Gedächtnis</h2></div>
+  <p class="progress" id="m-prog">Finden Sie alle Paare.</p>
+  <div class="grid" id="m-grid"></div>
+  <div class="feedback" id="m-fb"></div>
+</section>
+
+<!-- ERGEBNIS -->
+<section class="screen" id="s-result">
+  <div class="big" id="res-emo">🎉</div>
+  <h2 class="center" id="res-title">Geschafft!</h2>
+  <p class="center muted" id="res-text"></p>
+  <button class="btn" id="res-next">Weiter</button>
+</section>
+
+<!-- EINSTELLUNGEN -->
+<section class="screen" id="s-settings">
+  <div class="top"><button class="iconbtn" data-back>‹ Zurück</button><h2>Einstellungen</h2></div>
+  <div class="opt"><span>Schrift</span><div class="seg" data-set="size"><button data-v="n">Groß</button><button data-v="xl">Sehr groß</button></div></div>
+  <div class="opt"><span>Ton</span><div class="seg" data-set="sound"><button data-v="1">An</button><button data-v="0">Aus</button></div></div>
+  <div class="opt"><span>Vibration</span><div class="seg" data-set="vib"><button data-v="1">An</button><button data-v="0">Aus</button></div></div>
+  <p class="foot">Denkpause · Version 1<br>Alle Daten bleiben auf Ihrem Gerät.</p>
+</section>
+
+<script>
+"use strict";
+/* ---------- Speicher ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("dp_"+k); return v===null? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("dp_"+k, JSON.stringify(v)); }catch(e){} }
+};
+const settings = Object.assign({size:"n", sound:"1", vib:"1"}, store.get("settings", {}));
+
+/* ---------- Datum & Zufall ---------- */
+function dayKey(d){ d = d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function yesterdayKey(){ const d=new Date(); d.setDate(d.getDate()-1); return dayKey(d); }
+function seedFrom(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return h>>>0; }
+function rng(seed){ let a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+function shuffle(arr, r){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function pick(arr, r){ return arr[Math.floor(r()*arr.length)]; }
+
+/* ---------- Ton & Vibration ---------- */
+let actx=null;
+function beep(ok){
+  if(settings.sound!=="1") return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const notes = ok ? [660, 880] : [300, 220];
+    notes.forEach((f,i)=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.frequency.value=f; o.type="sine";
+      const t=actx.currentTime+i*0.12;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.2);
+    });
+  }catch(e){}
+}
+function vib(ms){ if(settings.vib==="1" && navigator.vibrate){ try{ navigator.vibrate(ms); }catch(e){} } }
+
+/* ---------- Wörter ---------- */
+const WORDS = [
+ ["APFEL","Obst"],["BIRNE","Obst"],["KIRSCHE","Obst"],["PFLAUME","Obst"],["ERDBEERE","Obst"],["BANANE","Obst"],["ZITRONE","Obst"],["TRAUBE","Obst"],
+ ["KARTOFFEL","Gemüse"],["GURKE","Gemüse"],["TOMATE","Gemüse"],["ZWIEBEL","Gemüse"],["KAROTTE","Gemüse"],["SPINAT","Gemüse"],["KÜRBIS","Gemüse"],["SPARGEL","Gemüse"],
+ ["HUND","Tier"],["KATZE","Tier"],["PFERD","Tier"],["SCHAF","Tier"],["ZIEGE","Tier"],["HUHN","Tier"],["MAUS","Tier"],["IGEL","Tier"],["FUCHS","Tier"],["HASE","Tier"],["EULE","Vogel"],["AMSEL","Vogel"],["STORCH","Vogel"],["SCHWAN","Vogel"],
+ ["TISCH","Möbel"],["STUHL","Möbel"],["SCHRANK","Möbel"],["SOFA","Möbel"],["REGAL","Möbel"],["SESSEL","Möbel"],["LAMPE","im Wohnzimmer"],["TEPPICH","im Wohnzimmer"],
+ ["SOMMER","Jahreszeit"],["WINTER","Jahreszeit"],["HERBST","Jahreszeit"],["FRÜHLING","Jahreszeit"],
+ ["MONTAG","Wochentag"],["DIENSTAG","Wochentag"],["FREITAG","Wochentag"],["SONNTAG","Wochentag"],["SAMSTAG","Wochentag"],
+ ["JANUAR","Monat"],["MÄRZ","Monat"],["APRIL","Monat"],["JULI","Monat"],["AUGUST","Monat"],["OKTOBER","Monat"],["DEZEMBER","Monat"],
+ ["BROT","beim Bäcker"],["BRÖTCHEN","beim Bäcker"],["KUCHEN","zum Kaffee"],["BUTTER","auf dem Frühstückstisch"],["HONIG","auf dem Frühstückstisch"],["KÄSE","auf dem Frühstückstisch"],["MILCH","Getränk"],["KAFFEE","Getränk"],["SAFT","Getränk"],["WASSER","Getränk"],
+ ["ROSE","Blume"],["TULPE","Blume"],["NELKE","Blume"],["LILIE","Blume"],["VEILCHEN","Blume"],["EICHE","Baum"],["BIRKE","Baum"],["TANNE","Baum"],["LINDE","Baum"],
+ ["RHEIN","Fluss"],["DONAU","Fluss"],["MAIN","Fluss"],["ELBE","Fluss"],
+ ["BERLIN","Stadt"],["HAMBURG","Stadt"],["MÜNCHEN","Stadt"],["KÖLN","Stadt"],["DRESDEN","Stadt"],["BREMEN","Stadt"],
+ ["GITARRE","Musikinstrument"],["KLAVIER","Musikinstrument"],["GEIGE","Musikinstrument"],["TROMMEL","Musikinstrument"],["FLÖTE","Musikinstrument"],
+ ["ZUG","Verkehrsmittel"],["AUTO","Verkehrsmittel"],["FAHRRAD","Verkehrsmittel"],["SCHIFF","Verkehrsmittel"],["BUS","Verkehrsmittel"],
+ ["SONNE","am Himmel"],["MOND","am Himmel"],["STERN","am Himmel"],["WOLKE","am Himmel"],["REGEN","Wetter"],["SCHNEE","Wetter"],["NEBEL","Wetter"],["GEWITTER","Wetter"],
+ ["HAMMER","Werkzeug"],["ZANGE","Werkzeug"],["SÄGE","Werkzeug"],["SCHRAUBE","in der Werkzeugkiste"],
+ ["GARTEN","am Haus"],["FENSTER","am Haus"],["DACH","am Haus"],["KELLER","im Haus"],["TREPPE","im Haus"],
+ ["BRILLE","auf der Nase"],["HANDSCHUH","Kleidung"],["MANTEL","Kleidung"],["MÜTZE","Kleidung"],["SCHAL","Kleidung"],["STIEFEL","Kleidung"],
+ ["BRIEF","bei der Post"],["ZEITUNG","jeden Morgen"],["KALENDER","an der Wand"],["UHR","an der Wand"],["SCHLÜSSEL","in der Tasche"],
+ ["WEIHNACHTEN","Fest"],["OSTERN","Fest"],["GEBURTSTAG","Fest"],["HOCHZEIT","Fest"],
+ ["NORDSEE","Meer"],["OSTSEE","Meer"],["ALPEN","Gebirge"],["HARZ","Gebirge"]
+];
+const WORDS_PER_DAY = 3;
+
+/* ---------- Status ---------- */
+let mode = "daily";   // "daily" oder "train"
+let R = null;         // aktueller Zufallsgenerator
+function todayState(){
+  const s = store.get("day", null);
+  if(!s || s.date!==dayKey()) return {date:dayKey(), done:{}};
+  return s;
+}
+function markDone(game){
+  if(mode!=="daily") return false;
+  const s = todayState();
+  if(s.done[game]) return false;
+  s.done[game]=true; store.set("day", s);
+  if(s.done.wort && s.done.rechnen && s.done.memo){
+    const st = store.get("streak", {count:0, last:null, best:0});
+    if(st.last===dayKey()) return true;
+    st.count = (st.last===yesterdayKey()) ? st.count+1 : 1;
+    st.last = dayKey(); st.best = Math.max(st.best||0, st.count);
+    store.set("streak", st);
+    return true; // alle drei fertig
+  }
+  return false;
+}
+function currentStreak(){
+  const st = store.get("streak", {count:0,last:null,best:0});
+  if(st.last===dayKey() || st.last===yesterdayKey()) return st;
+  return Object.assign({}, st, {count:0});
+}
+
+/* ---------- Navigation ---------- */
+let stack = ["home"];
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.getElementById("s-"+id).classList.add("on");
+  window.scrollTo(0,0);
+}
+function go(id){
+  if(id==="wort"||id==="rechnen"||id==="memo"){
+    R = rng(mode==="daily" ? seedFrom(dayKey()+id) : Math.floor(Math.random()*4294967295));
+    ({wort:startWort, rechnen:startRechnen, memo:startMemo})[id]();
+  }
+  if(id==="settings") renderSettings();
+  stack.push(id); show(id);
+}
+function home(){ stack=["home"]; renderHome(); show("home"); }
+window.goBack = function(){
+  if(stack.length<=1) return false;
+  stack.pop();
+  const id = stack[stack.length-1];
+  if(id==="home") renderHome();
+  show(id);
+  return true;
+};
+document.addEventListener("click", e=>{
+  const g = e.target.closest("[data-go]"); if(g){ go(g.dataset.go); return; }
+  if(e.target.closest("[data-back]")) window.goBack();
+});
+
+/* ---------- Startseite ---------- */
+const WT = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+const MN = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+function renderHome(){
+  mode="daily";
+  const d=new Date();
+  document.getElementById("today").textContent = WT[d.getDay()]+", "+d.getDate()+". "+MN[d.getMonth()]+" "+d.getFullYear();
+  const st=currentStreak();
+  document.getElementById("streakNum").textContent=st.count;
+  document.getElementById("streakTxt").innerHTML = (st.count===1?"Tag":"Tage")+" in Folge"+(st.best>1?'<br><span class="muted" style="font-size:.8em">Bestwert: '+st.best+' Tage</span>':"");
+  const s=todayState(); let all=true;
+  ["wort","rechnen","memo"].forEach(g=>{
+    const b=document.querySelector('.task[data-go="'+g+'"]');
+    b.classList.toggle("done", !!s.done[g]);
+    document.getElementById("st-"+g).textContent = s.done[g] ? "✅" : "›";
+    if(!s.done[g]) all=false;
+  });
+  document.getElementById("extra").innerHTML = all
+    ? '<div class="hint center">🌟 Alles erledigt für heute! Morgen gibt es neue Aufgaben.</div><button class="btn" id="train">Freies Training</button>'
+    : "";
+  const t=document.getElementById("train");
+  if(t) t.onclick=()=>{ go("trainmenu"); };
+}
+
+/* Training: einfach alle drei Spiele zufällig */
+document.getElementById("extra").addEventListener("click", e=>{
+  if(e.target.id==="train"){ e.stopPropagation(); }
+});
+const _go = go;
+go = function(id){
+  if(id==="trainmenu"){
+    mode="train";
+    document.querySelectorAll(".task").forEach(b=>{ b.classList.remove("done"); });
+    ["wort","rechnen","memo"].forEach(g=>document.getElementById("st-"+g).textContent="›");
+    document.getElementById("extra").innerHTML='<div class="hint center">🏋️ Trainingsmodus – zählt nicht für den Tageswert.</div>';
+    return;
+  }
+  _go(id);
+};
+
+/* ---------- Ergebnis ---------- */
+function result(emo, title, text, allDone){
+  document.getElementById("res-emo").textContent = allDone ? "🏆" : emo;
+  document.getElementById("res-title").textContent = allDone ? "Alle Aufgaben geschafft!" : title;
+  let t = text;
+  if(allDone){ const st=currentStreak(); t += " Sie sind jetzt "+st.count+(st.count===1?" Tag":" Tage")+" in Folge dabei. Bis morgen!"; }
+  document.getElementById("res-text").textContent = t;
+  document.getElementById("res-next").onclick = ()=>{ if(mode==="train"){ stack=["home"]; show("home"); } else home(); };
+  stack=["home","result"]; show("result");
+  beep(true); vib(allDone?[80,60,80,60,160]:120);
+}
+
+/* ---------- Wort-Rätsel ---------- */
+let W = null;
+function startWort(){
+  const words = shuffle(WORDS, R).slice(0, WORDS_PER_DAY);
+  W = {words, i:0, tips:0};
+  loadWord();
+}
+function loadWord(){
+  const [word, hint] = W.words[W.i];
+  const letters = [...word];
+  let mix; let n=0;
+  do{ mix = shuffle(letters.map((c,i)=>({c,i})), R); n++; } while(mix.map(x=>x.c).join("")===word && n<10);
+  W.cur = {word, letters, mix, typed:[], fixed:0};
+  document.getElementById("w-prog").textContent = "Wort "+(W.i+1)+" von "+W.words.length;
+  document.getElementById("w-hint").textContent = hint+" · "+letters.length+" Buchstaben";
+  document.getElementById("w-fb").textContent=""; document.getElementById("w-fb").className="feedback";
+  renderWord();
+}
+function renderWord(){
+  const c=W.cur;
+  const slots=document.getElementById("w-slots"); slots.innerHTML="";
+  for(let i=0;i<c.letters.length;i++){
+    const d=document.createElement("div"); d.className="slot";
+    d.textContent = c.typed[i]!==undefined ? c.mix[c.typed[i]].c : "";
+    if(i<c.fixed) d.style.color="var(--accent)";
+    slots.appendChild(d);
+  }
+  const tiles=document.getElementById("w-tiles"); tiles.innerHTML="";
+  c.mix.forEach((m,idx)=>{
+    const b=document.createElement("button"); b.className="tile"+(c.typed.includes(idx)?" used":"");
+    b.textContent=m.c; b.onclick=()=>typeLetter(idx); tiles.appendChild(b);
+  });
+}
+function typeLetter(idx){
+  const c=W.cur; if(c.typed.includes(idx)||c.typed.length>=c.letters.length) return;
+  c.typed.push(idx); vib(15); renderWord();
+  if(c.typed.length===c.letters.length) checkWord();
+}
+function checkWord(){
+  const c=W.cur, fb=document.getElementById("w-fb");
+  const guess=c.typed.map(i=>c.mix[i].c).join("");
+  if(guess===c.word){
+    fb.textContent="Richtig! 👍"; fb.className="feedback ok"; beep(true); vib(60);
+    setTimeout(()=>{
+      W.i++;
+      if(W.i<W.words.length) loadWord();
+      else { const all=markDone("wort"); result("🔤","Wort-Rätsel gelöst!","Alle "+W.words.length+" Wörter gefunden"+(W.tips?" ("+W.tips+" Tipps genutzt).":"."), all); }
+    }, 900);
+  } else {
+    fb.textContent="Noch nicht ganz – versuchen Sie es noch einmal."; fb.className="feedback bad"; beep(false); vib(200);
+    const s=document.getElementById("w-slots"); s.classList.remove("shake"); void s.offsetWidth; s.classList.add("shake");
+    setTimeout(()=>{ c.typed=c.typed.slice(0,c.fixed); renderWord(); }, 700);
+  }
+}
+document.getElementById("w-del").onclick=()=>{ const c=W.cur; if(c.typed.length>c.fixed){ c.typed.pop(); renderWord(); } };
+document.getElementById("w-tip").onclick=()=>{
+  const c=W.cur; c.typed=c.typed.slice(0,c.fixed);
+  if(c.fixed>=c.letters.length-1) return;
+  const need=c.letters[c.fixed];
+  const idx=c.mix.findIndex((m,i)=>m.c===need && !c.typed.includes(i));
+  c.typed.push(idx); c.fixed++; W.tips++;
+  document.getElementById("w-fb").textContent=""; renderWord();
+};
+
+/* ---------- Kopfrechnen ---------- */
+let M=null;
+function makeTask(level){
+  const r=R, ri=(a,b)=>a+Math.floor(r()*(b-a+1));
+  let a,b,op,res;
+  if(level<2){ a=ri(12,59); b=ri(5,39); op="+"; res=a+b; }
+  else if(level<3){ a=ri(30,99); b=ri(6,a-10); op="−"; res=a-b; }
+  else if(level<5){ a=ri(3,9); b=ri(3,12); op="×"; res=a*b; }
+  else { b=ri(3,9); res=ri(3,12); a=b*res; op=":"; }
+  const opts=new Set([res]);
+  while(opts.size<4){ const d=pick([-10,-2,-1,1,2,10,-3,3],r); const v=res+d; if(v>0) opts.add(v); }
+  return {text:a+" "+op+" "+b, res, opts:shuffle([...opts],r)};
+}
+function startRechnen(){
+  M={tasks:Array.from({length:6},(_,i)=>makeTask(i)), i:0, ok:0, lock:false};
+  loadTask();
+}
+function loadTask(){
+  const t=M.tasks[M.i];
+  document.getElementById("r-prog").textContent="Aufgabe "+(M.i+1)+" von "+M.tasks.length;
+  document.getElementById("r-q").textContent=t.text+" = ?";
+  document.getElementById("r-fb").textContent="";
+  const box=document.getElementById("r-ans"); box.innerHTML="";
+  t.opts.forEach(v=>{
+    const b=document.createElement("button"); b.className="ans"; b.textContent=v;
+    b.onclick=()=>answer(b,v); box.appendChild(b);
+  });
+  M.lock=false;
+}
+function answer(btn,v){
+  if(M.lock) return; M.lock=true;
+  const t=M.tasks[M.i], fb=document.getElementById("r-fb");
+  if(v===t.res){ btn.classList.add("ok"); M.ok++; fb.textContent="Richtig! 👍"; fb.className="feedback ok"; beep(true); vib(40); }
+  else {
+    btn.classList.add("bad"); beep(false); vib(200);
+    [...document.querySelectorAll("#r-ans .ans")].find(b=>+b.textContent===t.res).classList.add("ok");
+    fb.textContent="Die richtige Antwort ist "+t.res+"."; fb.className="feedback bad";
+  }
+  setTimeout(()=>{
+    M.i++;
+    if(M.i<M.tasks.length) loadTask();
+    else {
+      const all=markDone("rechnen");
+      const lob = M.ok===6?"Perfekt!":M.ok>=4?"Sehr gut!":"Gut gemacht!";
+      result("➕",lob, M.ok+" von 6 Aufgaben richtig.", all);
+    }
+  }, v===t.res?800:1600);
+}
+
+/* ---------- Gedächtnis ---------- */
+const EMO=["🍎","🌻","🐶","🚲","☕","🎵","🌙","🐟","🏠","🍒","⚽","🦋","🌲","🔑","🚂","🐱"];
+let G=null;
+function startMemo(){
+  const sym=shuffle(EMO,R).slice(0,6);
+  G={cards:shuffle([...sym,...sym],R), open:[], found:0, moves:0, lock:false};
+  document.getElementById("m-fb").textContent="";
+  const grid=document.getElementById("m-grid"); grid.innerHTML="";
+  G.cards.forEach((s,i)=>{
+    const b=document.createElement("button"); b.className="card"; b.textContent=s; b.dataset.i=i;
+    b.onclick=()=>flip(b,i); grid.appendChild(b);
+  });
+  memoProg();
+}
+function memoProg(){ document.getElementById("m-prog").textContent="Paare: "+G.found+" von 6 · Züge: "+G.moves; }
+function flip(b,i){
+  if(G.lock||b.classList.contains("open")||b.classList.contains("match")) return;
+  b.classList.add("open"); G.open.push(b); vib(15);
+  if(G.open.length===2){
+    G.moves++; G.lock=true;
+    const [x,y]=G.open;
+    if(x.textContent===y.textContent){
+      setTimeout(()=>{ x.classList.replace("open","match"); y.classList.replace("open","match"); G.open=[]; G.lock=false; G.found++; memoProg(); beep(true);
+        if(G.found===6){ const all=markDone("memo"); setTimeout(()=>result("🃏","Alle Paare gefunden!","Sie haben "+G.moves+" Züge gebraucht.", all),500); }
+      },350);
+    } else {
+      setTimeout(()=>{ x.classList.remove("open"); y.classList.remove("open"); G.open=[]; G.lock=false; memoProg(); },1100);
+    }
+  }
+}
+
+/* ---------- Einstellungen ---------- */
+function applySettings(){ document.body.classList.toggle("xl", settings.size==="xl"); }
+function renderSettings(){
+  document.querySelectorAll("[data-set]").forEach(seg=>{
+    seg.querySelectorAll("button").forEach(b=>b.classList.toggle("on", settings[seg.dataset.set]===b.dataset.v));
+  });
+}
+document.querySelectorAll("[data-set]").forEach(seg=>{
+  seg.addEventListener("click", e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    settings[seg.dataset.set]=b.dataset.v; store.set("settings", settings);
+    applySettings(); renderSettings(); if(seg.dataset.set==="sound"&&b.dataset.v==="1") beep(true);
+  });
+});
+
+applySettings();
+renderHome();
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && stack.length===1) renderHome(); });
+</script>
+</body>
+</html>
